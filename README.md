@@ -1,2 +1,2 @@
 # plugin_online
-Run plug-in online.
+Run a plug-in in browser for preview.
