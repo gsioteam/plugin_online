@@ -15,18 +15,21 @@ Future<void> initializeSetupJS(BuildContext context) async {
 setupJS(JsScript script) {
   _htmlParser.attachTo(script);
   script.eval("""
-  const _oldFetch = window.fetch;
-  window.fetch = function(res, init) {
-    try {
-      if (typeof res === 'string') {
-        var url = new URL(res);
-        if (url.protocol) {
-          return _oldFetch.call(window, 'https://api.codetabs.com/v1/proxy/?quest=' + res, init);
+  if (!window.__setuped) {
+    window.__setuped = true;
+    const _oldFetch = window.fetch;
+    window.fetch = function(res, init) {
+      try {
+        if (typeof res === 'string') {
+          var url = new URL(res);
+          if (url.protocol) {
+            return _oldFetch.call(window, 'https://api.codetabs.com/v1/proxy/?quest=' + res, init);
+          }
         }
-      }
-    } catch (e) {}
-
-    return _oldFetch.call(window, res, init);
+      } catch (e) {}
+  
+      return _oldFetch.call(window, res, init);
+    }
   }
   """);
 
