@@ -24,7 +24,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_dapp: ^0.0.3
+  flutter_dapp: ^0.0.4
   xml_layout: ^2.3.6
   xml: ^5.1.2
   jdenticon_dart: ^2.0.0
