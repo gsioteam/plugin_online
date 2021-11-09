@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>XmlLayout Preview</title>
+        <script src="https://www.unpkg.com/codemirror@5.63.3/lib/codemirror.js"></script>
+        <link href="https://www.unpkg.com/codemirror@5.63.3/lib/codemirror.css" rel="stylesheet">
+        <script src="https://unpkg.com/codemirror@5.63.3/mode/javascript/javascript.js"></script>
+        <script src="https://unpkg.com/codemirror@5.63.3/mode/xml/xml.js"></script>
+        <link href="https://unpkg.com/codemirror@5.63.3/theme/colorforth.css" rel="stylesheet">
+        <script src="https://unpkg.com/jquery@1.9.1/jquery.js"></script>
+        <link href="https://unpkg.com/bootstrap@5.1.3/dist/css/bootstrap.css" rel="stylesheet">
+        <script src="https://unpkg.com/bootstrap@5.1.3/dist/js/bootstrap.js"></script>
+        <script src="https://unpkg.com/isomorphic-git"></script>
+        <script src="https://unpkg.com/browserfs@2.0.0/dist/browserfs.min.js"></script>
+        <style>
+            html, body {
+                height: 100%;
+            }
+
+            .input-block {
+                height: 480px;
+                width: 100%;
+            }
+
+            .file-list {
+                width: 100%;
+                height: 180px;
+                writing-mode: vertical-lr;   
+                overflow: auto; 
+            }
+
+            .file-list > .file-item {
+                display: inline-block;
+                width: 180px;
+                height: 24px;
+                writing-mode: horizontal-tb;
+                padding: 2px 6px;
+                text-overflow: ellipsis;
+                cursor: pointer;
+            }
+
+            .file-list > .file-item:hover {
+                background-color: aqua;
+            }
+
+            .iframe-box {
+                width: 360px;
+                height: 640px;
+                position: absolute;
+                left: 50%;
+                margin-left: -180px;
+                margin-top: 12px;
+                box-shadow: 1px 1px 8px gray;
+            }
+
+            svg {
+                fill: white;
+                width: 16px;
+                height: 16px;
+            }
+
+            .popover-menu {
+                right: 4px;
+                top: -4px;
+                position: absolute;
+                width: 280px;
+                height: 460px;
+                z-index: 999;
+                display: none;
+            }
+
+            .popover-menu > button {
+                position: absolute;
+                right: 4px;
+                top: 4px;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div class="navbar navbar-light bg-light">
+            <div class="container position-relative">
+                <a class="navbar-brand" href="#">Plug-in Online</a>
+    
+                <div class="float-end">
+                    <a class="btn btn-dark me-2" href="https://github.com/gsioteam/plugin_online">
+                        <img src="./res/github.png" width="16px" height="16px">
+                    </a>
+
+                    <button class="btn btn-primary" id="menu-button">
+                        <svg id="i-menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                            <path d="M4 8 L28 8 M4 16 L28 16 M4 24 L28 24" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="card mw-100 overflow-auto popover-menu">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item head bg-light"><h5>Support Types</h5></li>
+                    </ul>
+                    <button class="btn btn-outline-secondary btn-sm">
+                        <svg id="i-close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                            <path d="M2 30 L30 2 M30 30 L2 2" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="container mt-2">
+            <div class="row">
+                <div class="col-6">
+                    <div>
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                              <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#git-panel" type="button" role="tab" aria-controls="git-panel" aria-selected="true">Git</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                              <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#file-panel" type="button" role="tab" aria-controls="file-panel" aria-selected="false">File</button>
+                            </li>
+                          </ul>
+                          <div class="tab-content" id="myTabContent">
+                            <div class="tab-pane fade show active mt-2" id="git-panel" role="tabpanel" aria-labelledby="git-panel-tab">
+                                <div class="input-group">
+                                    <input type="url" class="form-control" id="git-input" placeholder="https://..."> 
+                                    <button class="btn btn-outline-secondary" type="button" id="git-button">Submit</button>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade mt-2" id="file-panel" role="tabpanel" aria-labelledby="file-panel-tab">
+                                <div class="input-group">
+                                    <input type="file" class="form-control" id="file-input" >
+                                    <button class="btn btn-outline-secondary" type="button" id="file-button">Submit</button>
+                                </div>
+                            </div>
+                          </div>
+                    </div>
+                    <div class="border border-2 border-primary mt-2">
+                        <div id="file-list" class="file-list">
+                        </div>
+                    </div>
+                    <div class="border border-2 border-primary mt-2">
+                        <textarea id="code-text"  class="input-block"></textarea>
+                    </div>
+                </div>
+                <div class="col-6 h-100 position-relative">
+                    <iframe class="iframe-box" src="build/web"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <script src="./browser_src/bundle.js"></script>
+
+        <script>
+
+            var ready = false;
+            var textarea = document.getElementById("code-text");
+            var templateEditor = CodeMirror.fromTextArea(textarea, {
+                mode: "xml",
+                lineNumbers: true,
+                readOnly: true,
+                lineWrapping: true
+            });
+            templateEditor.setSize('100%', 480);
+
+            const fileList = document.getElementById('file-list');
+            let fileItems;
+
+            document.getElementById('git-button').onclick = async function() {
+                let input = document.getElementById('git-input');
+                let url = input.value;
+                if (url.length > 0) {
+                    manager.clone(url).then(function(items) {
+                        fileItems = items;
+                        setupFileItems();
+                        if (ready) {
+                            sendFiles();
+                        }
+                    });
+                } else {
+                    input.focus();
+                }
+            };
+
+            document.getElementById('file-button').onclick = function() {
+                let input = document.getElementById('file-input');
+                if (input.files.length > 0) {
+                    let file = input.files[0];
+                    manager.readFile(file).then(function(items) {
+                        fileItems = items;
+                        setupFileItems();
+                        if (ready) {
+                            sendFiles();
+                        }
+                    });
+                }
+                console.log(input.files);
+            };
+
+            var iframe = document.getElementsByClassName('iframe-box')[0];
+            iframe.contentWindow.onmessage = function(e) {
+                if (e.data.type === 'ready') {
+                    ready = true;
+
+                    if (fileItems) {
+                        sendFiles();
+                    }
+                }
+            };
+
+            function setupFileItems() {
+                fileList.innerHTML = '';
+                for (let item of fileItems) {
+                    fileList.appendChild(item.element);
+                    item.onclick = function() {
+                        if (this.ext === '.js' || this.ext === '.json') {
+                            templateEditor.setOption('mode', 'javascript');
+                            templateEditor.setValue(this.text);
+                        } else if (this.ext === '.xml') {
+                            templateEditor.setOption('mode', 'xml');
+                            templateEditor.setValue(this.text);
+                        } else {
+
+                        }
+                    }
+                }
+            }
+
+            function sendFiles() {
+                var arr = [];
+                for (var i = 0, t = fileItems.length; i < t; ++i) {
+                    arr.push(fileItems[i].toJSON());
+                } 
+                iframe.contentWindow.postMessage({
+                    type: 'files',
+                    data: arr
+                }, "*");
+            }
+
+            document.querySelector('.popover-menu > button').onclick = function() {
+                document.querySelector('.popover-menu').style.display = 'none';
+            };
+            document.getElementById('menu-button').onclick = function() {
+                document.querySelector('.popover-menu').style.display = 'block';
+            }
+        </script>
+    </body>
+</html>

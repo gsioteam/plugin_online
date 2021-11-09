@@ -1,0 +1,9 @@
+
+.dart_tool
+browser_src/node_modules
+.idea
+
+.packages
+.flutter-plugins-dependencies
+.flutter-plugins
+pubspec.lock

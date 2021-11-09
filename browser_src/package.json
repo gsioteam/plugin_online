@@ -1,0 +1,17 @@
+{
+  "name": "browser_src",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "browserify index.js > bundle.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "browserfs": "^1.4.3",
+    "browserify": "^17.0.0",
+    "isomorphic-git": "^1.10.1",
+    "md5": "^2.3.0"
+  }
+}
