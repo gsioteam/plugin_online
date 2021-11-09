@@ -2,6 +2,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dapp/flutter_dapp.dart';
 import 'package:flutter_dapp/extensions/html_parse.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 HTMLParser _htmlParser = HTMLParser();
 
@@ -28,4 +29,14 @@ setupJS(JsScript script) {
     return _oldFetch.call(window, res, init);
   }
   """);
+
+  JsValue jsonToString = script.eval("(function(obj){return JSON.stringify(obj)})");
+  jsonToString.retain();
+
+  script.global['openVideo'] = script.function((argv) {
+    Fluttertoast.showToast(
+      msg: 'Open \n${argv[0]}\n\n${jsonToString.call([argv[1]])}',
+      toastLength: Toast.LENGTH_LONG,
+    );
+  });
 }

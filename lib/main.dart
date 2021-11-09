@@ -280,13 +280,6 @@ class _HomeState extends State<Home> {
         onInitialize: (script) {
           setupJS(script);
 
-          script.global['openVideo'] = script.function((argv) {
-            // OpenVideoNotification(
-            //     key: argv[0],
-            //     data: jsValueToDart(argv[1]),
-            //     plugin: plugin!
-            // ).dispatch(context);
-          });
         },
       );
     }
